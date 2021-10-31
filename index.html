@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="stylesheet" href="https://yastatic.net/s3/frontend/yandex-font/v0.0.2/browser.css">
+    <title>Something page</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <h1>Hello</h1>
+    <h2>Its test page for generation stats</h2>
+    <div>Sorry, didn't have time for good design</div>
+    <script src="send.js"></script>
+    <script>
+
+      const counter = new Counter();
+
+      counter.init(
+              '034C8E32-B78C-4088-A944-FA55C13EB0E8',
+              String(Math.random()).substr(2, 12),
+              'super-uber-app'
+      );
+
+      function getUserAgent() {
+        return navigator.userAgent.toLowerCase();
+      }
+
+      function getUserOS() {
+        return navigator.platform.toLowerCase();
+      }
+      
+      function getPlatform() {
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+          return 'touch';
+        } else {
+          return 'desktop';
+        }
+      }
+
+      counter.setAdditionalParams({
+        platform: getPlatform(),
+        os: getUserOS(),
+        userAgent: getUserAgent(),
+      });
+      const performanceEntriesByResource = performance.getEntriesByType('resource')[1];
+      const [connectStart, connectEnd, requestStart, responseEnd] = [performanceEntriesByResource['connectStart'], performanceEntriesByResource['connectEnd'], performanceEntriesByResource['requestStart'], performanceEntriesByResource['responseEnd']];
+
+      counter.send('connect', connectEnd - connectStart);
+      counter.send('ttfb', responseEnd - requestStart);
+
+      counter.send('domComplete', PerformanceNavigationTiming.domComplete);
+      counter.send('domInteractive', PerformanceNavigationTiming.domInteractive);
+
+      const performanceEntriesByPaint = window.performance.getEntriesByType('paint');
+      performanceEntriesByPaint.forEach((performanceEntry) => {
+        if (performanceEntry.name === 'first-contentful-paint') {
+          counter.send('firstContentfulPaint', performanceEntry.startTime);
+        }
+      });
+
+    </script>
+  </body>
+</html>
